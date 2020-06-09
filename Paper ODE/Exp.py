@@ -43,5 +43,6 @@ time_span = (start, end)
 # boundaries for a and b: So that neither falls below 0... not pretty but helpful
 bounds = ((1e-99, 1e99), (1e-99, 1e99))
 
-res = minimize(MSE, [a, b], args=(Fatalities, time_span), bounds=bounds)
+res = minimize(MSE, [a, b], args=(Fatalities, time_span), bounds=bounds,
+               options={'disp': True})
 # print(res)

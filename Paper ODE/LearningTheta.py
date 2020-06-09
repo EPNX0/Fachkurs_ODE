@@ -10,6 +10,9 @@ import matplotlib
 import numpy as np
 from scipy.integrate import solve_ivp
 from scipy.optimize import minimize
+import random
+
+
 
 '''ODE's for predicting results
 '''
@@ -19,7 +22,7 @@ def SuEIR(t, x, beta, sigma, gamma, mu):
     '''Compartments
     '''
     S = x[0]
-    E = x[1] 
+    E = x[1]
     I = x[2]
     R = x[3]
     N = S + E + I + R
@@ -86,15 +89,17 @@ time_span = (start, end)
 I_true = []
 R_true = []
 ground_truth = [I_true, R_true]
-'''Parameters to tune
+'''Parameters to tune; random initialization
 '''
-beta = 0
-sigma = 0
-gamma = 0
-mu = 0
+random_pars = np.array([0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.])
+beta = random.choice(random_pars)
+sigma = random.choice(random_pars)
+gamma = random.choice(random_pars)
+mu = random.choice(random_pars)
+bounds = ((0, 1), (0, 1), (0, 1), (0, 1))  # boundaries for parameters
 
 results = minimize(LMSE, [beta, sigma, gamma, mu], args=(time_span,
                                                          init_values,
                                                          ground_truth,
                                                          wanted_times),
-                   method='BFGS')
+                   method='BFGS', bounds=bounds)
