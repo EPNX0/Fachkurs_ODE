@@ -10,41 +10,19 @@ import matplotlib
 import numpy as np
 from scipy.integrate import solve_ivp
 from scipy.optimize import minimize
-from sklearn.metrics import mean_squared_log_error
-
-'''Compartments; Initial Values
-'''
-S0 = 0  # Susceptible Individuals at t=0
-E0 = 0  # Exposed Individuals at t=0
-I0 = 0  # Infectious Individuals at t=0
-R0 = 0  # Removed individuals at t=0
-
-Initial_values = [S0, E0, I0, R0]  # Values from Data at start-time
-
-'''Time grid
-'''
-start = 0
-end = 0
-wanted_times = [None]  # t_eval in solve_ivp
-time_span = (start, end)
 
 '''ODE's for predicting results
 '''
-def SuEIR(t, x):
-    '''Parameters
-    '''
-    beta = 0  # Contact rate between S and (E+I)
-    sigma = 0  # ratio of cases in E that are either confirmed as I or dead/recovered without confirmation
-    gamma = 0  # Transition rate between I and R
-    mu = 0  # discovery rate of infected cases
 
+
+def SuEIR(t, x, beta, sigma, gamma, mu):
     '''Compartments
     '''
     S = x[0]
     E = x[1]
     I = x[2]
     R = x[3]
-    N = S + E + I + R  # total population
+    N = S + E + I + R  # Some population < Total population
 
     '''ODE's
     '''
@@ -57,9 +35,12 @@ def SuEIR(t, x):
 
 # TODO:
 # URL for optimizer: https://docs.scipy.org/doc/scipy/reference/tutorial/optimize.html
+# URL for MSE: https://www.kaggle.com/c/ashrae-energy-prediction/discussion/113064
+
+
 def MSE(x):
     # smoothing parameter
-    p = 0
+    p = 1  # To ensure that log10 won't become a math error
 
     I_t_est = x[0]
     I_t = x[1]
@@ -77,18 +58,41 @@ def MSE(x):
 
     return L
 
+
+'''Compartments; Initial Values
+'''
+S0 = 0  # Susceptible Individuals at t=0
+E0 = 0  # Exposed Individuals at t=0
+I0 = 0  # Infectious Individuals at t=0
+R0 = 0  # Removed individuals at t=0
+
+Initial_values = [S0, E0, I0, R0]  # Values from Data at start-time
+
+'''Time grid
+'''
+start = 0
+end = 0
+wanted_times = [None]  # t_eval in solve_ivp
+time_span = (start, end)
+
 '''Machine Learning to learn parameters
 '''
 # Reproted No.
 I_t = np.array([])  # probably import via pandas through data
 R_t = np.array([])  # probably import via pandas through data
 
-
+'''
+beta: Contact rate between S and (E+I)
+sigma: ratio of cases in E that are either confirmed as I or dead/recovered without confirmation
+gamma: Transition rate between I and R
+mu: discovery rate of infected cases
+'''
 # Estimated No.
-ODE_results = solve_ivp(SuEIR, time_span, Initial_values)
+ODE_results = solve_ivp(SuEIR, time_span, Initial_values, args=(beta, sigma, gamma, mu))
 I_t_est = ODE_results.y[-1]
 R_t_est = ODE_results.y[-2]
 
 X0 = [I_t_est, I_t, R_t_est, R_t]  # List for optimizer
 
 L = minimize(MSE, X0, method='BFGS', options={'disp': True})  # Optimizer
+
