@@ -2,4 +2,4 @@
 - Exp-fkt returns ratio Fatalities/Removed
 - Fitting happens with reported Data of Fatalitiy and of Removed cases
 - Model predicts Removed Cases for the future
-- Use predictes values of R and Exp-fkt with tuned a and b to get predicted fatality cases
+- Use predicted values of R and Exp-fkt with tuned a and b to get predicted fatality cases

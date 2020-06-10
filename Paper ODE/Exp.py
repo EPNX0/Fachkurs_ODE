@@ -45,14 +45,14 @@ def MSE(parameters, Fatalities, time_span, ground_truth):
     mse = mean_squared_error(y_true, y_pred)
 
     return mse
-
+# data are from 1/22/20 - 6/9/20; need data from 3/22/20 - 5/10/20
 deaths = pd.read_csv('./italy_deaths.csv')
 removed = pd.read_csv('./italy_removed.csv')
 
 Removed = np.array(removed.iloc[:, -1])  # Ground Truth to minimize MSE
 Fatalities = np.array(deaths.iloc[:, -1])  # To get Removed from Exp; Get from Data
-a = 1.03166465  # Parameter for Exp
-b = 0.01355556  # Parameter for Exp
+a = 1.03167013  # Parameter for Exp
+b = 0.01355561  # Parameter for Exp
 start = 0
 end = len(Fatalities)
 time_span = (start, end)
@@ -60,14 +60,14 @@ time_span = (start, end)
 bounds = ((1e-99, 1e99), (1e-99, 1e99))
 
 '''Tuning the parameters a and b
-'''
+
 res = minimize(MSE, [a, b], args=(Fatalities, time_span, Removed), bounds=bounds,
                options={'disp': True})
 print(res)
-
+'''
 
 '''After successful tuning; plotting the result
-
+'''
 ratios = exp(a, b, time_span)
 X = list(range(start, end))
 y_pred = Fatalities * np.ones(ratios.shape)/ratios
@@ -78,7 +78,7 @@ plt.plot(X, y_pred, label='Predicted', color='red', linestyle='--')
 plt.legend()
 plt.ylabel('# Removed Cases')
 plt.xlabel('days')
-'''
+
 
 '''We need number of active cases (I) and removed cases (R); most data only
 include confirmed cases (I+R); We need to get I and R separately; Model can only

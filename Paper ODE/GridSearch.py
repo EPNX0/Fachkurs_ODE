@@ -52,5 +52,14 @@ parameters = {'beta': beta, 'sigma': sigma, 'gamma': gamma, 'mu':mu}
 I0 and R0 should be obtainable from Data;
 E0 and N0 need to be estimated via validation set and grid search;
 S0 would be therefore N0 - E0 - I0 - R0;
-Data from 22.3.20 - 3.5.20 is training set; from 4.5.20 - 10.5.20 validation set;
+Data from 22.3.20 - 3.5.20 is training set; from 4.5.20 - 10.5.20 validation set; Total of 50 days
+      index: 71   -  113                           114  -   120
 '''
+df = pd.read_csv('C:/Users/Erich/Desktop/Theoretische Biophysik; Systembiologie/FK/covid_data_CSSE/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv')
+keys = list(df.keys())
+vik = keys[71: 121]
+confirmed = []
+for key in vik:
+    confirmed.append(df[key].sum())
+confirmed = np.array(confirmed)
+
