@@ -29,8 +29,9 @@ def exp(a, b, t_span):
 
 
 def MSE(parameters, Fatalities, time_span, ground_truth):
+    X = list(range(time_span[0], time_span[1]))
     try:
-        assert len(list(range(time_span[0], time_span[1]))) == len(Fatalities)
+        assert len(X) == len(Fatalities)
     except AssertionError:
         raise ValueError('Either your time_span is too small or array of Fatalities too long')
 
@@ -39,7 +40,7 @@ def MSE(parameters, Fatalities, time_span, ground_truth):
     y_true = ground_truth
     ratios = exp(a, b, time_span)
     y_pred = Fatalities * np.ones(ratios.shape)/ratios
-    #print(f'True:{y_true}; Pred:{y_pred}')
+    print(f'True:{y_true}; Pred:{y_pred}')
 
     mse = mean_squared_error(y_true, y_pred)
 
@@ -49,18 +50,35 @@ deaths = pd.read_csv('./italy_deaths.csv')
 removed = pd.read_csv('./italy_removed.csv')
 
 Removed = np.array(removed.iloc[:, -1])  # Ground Truth to minimize MSE
-Fatalities = np.array(removed.iloc[:, -1])  # To get Removed from Exp; Get from Data
-a = 1  # Parameter for Exp
-b = 1  # Parameter for Exp
+Fatalities = np.array(deaths.iloc[:, -1])  # To get Removed from Exp; Get from Data
+a = 1.03166465  # Parameter for Exp
+b = 0.01355556  # Parameter for Exp
 start = 0
-end = 0
+end = len(Fatalities)
 time_span = (start, end)
 # boundaries for a and b: So that neither falls below 0... not pretty but helpful
 bounds = ((1e-99, 1e99), (1e-99, 1e99))
 
+'''Tuning the parameters a and b
+'''
 res = minimize(MSE, [a, b], args=(Fatalities, time_span, Removed), bounds=bounds,
                options={'disp': True})
-#print(res)
+print(res)
+
+
+'''After successful tuning; plotting the result
+
+ratios = exp(a, b, time_span)
+X = list(range(start, end))
+y_pred = Fatalities * np.ones(ratios.shape)/ratios
+y_true = Removed
+
+plt.plot(X, y_true, label='GroundTruth', color='blue')
+plt.plot(X, y_pred, label='Predicted', color='red', linestyle='--')
+plt.legend()
+plt.ylabel('# Removed Cases')
+plt.xlabel('days')
+'''
 
 '''We need number of active cases (I) and removed cases (R); most data only
 include confirmed cases (I+R); We need to get I and R separately; Model can only
