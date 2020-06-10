@@ -11,7 +11,8 @@ import numpy as np
 from scipy.integrate import solve_ivp
 from scipy.optimize import minimize
 import random
-
+random.seed(1)
+np.random.seed(1)
 
 
 '''ODE's for predicting results
@@ -26,8 +27,8 @@ def SuEIR(t, x, beta, sigma, gamma, mu):
     I = x[2]
     R = x[3]
     N = S + E + I + R
-   # print(f'S:{S}; E:{E}; I:{I}; R:{R}; N:{N}')
-   # print(f'beta:{beta}; sigma:{sigma}; gamma:{gamma}; mu:{mu}')
+    #print(f'S:{S}; E:{E}; I:{I}; R:{R}; N:{N}')
+    #print(f'beta:{beta}; sigma:{sigma}; gamma:{gamma}; mu:{mu}')
 
     '''ODE's
     '''
@@ -40,7 +41,7 @@ def SuEIR(t, x, beta, sigma, gamma, mu):
 
 
 def LMSE(parameters, time_span, init_values, ground_truth, wanted_times):
-   # print(f'Parms:{parameters}; t_span:{time_span}; init_vals:{init_values}; GT:{ground_truth}, t_eval:{wanted_times}')
+    #print(f'Parms:{parameters}; t_span:{time_span}; init_vals:{init_values}; GT:{ground_truth}, t_eval:{wanted_times}')
     Predicitons = solve_ivp(SuEIR, time_span, init_values, args=(beta, sigma, gamma, mu), t_eval=wanted_times)
     I_pred = Predicitons.y[2]
     R_pred = Predicitons.y[3]
@@ -60,46 +61,34 @@ def LMSE(parameters, time_span, init_values, ground_truth, wanted_times):
     for t in range(len(I_pred)):
         result = math.sqrt(math.log10(I_pred[t] + p) - math.log10(I_true[t] + p)) + \
                  math.sqrt(math.log10(R_pred[t] + p) - math.log10(R_true[t] + p))
-   #     print(f'result:{result}')
+    #    print(f'result:{result}')
         results.append(result)
-   # print(f'results:{results}')
+    #print(f'results:{results}')
     L = np.mean(results)
-   # print(f'L:{L}')
+    #print(f'L:{L}')
 
     return L
 
 
-'''Compartments; initial values
-'''
-S0 = 0  # Susceptible Individuals at t=0
-E0 = 0  # Exposed Individuals at t=0; estimated via validation set
-I0 = 0  # Infectious Individuals at t=0
-R0 = 0  # Removed individuals at t=0
-init_values = [S0, E0, I0, R0]  # Values from Data at start-time
+def Argmin(parameters, time_span, initial_values, ground_truth, wanted_times, method, boundaries):
+    '''
+    Input:
+        parameters: List of parameters for ODE-model
+        time_span: time_span for solve_ivp() from scipy
+        initial_values: y0 for solve_ivp() from scipy
+        ground_truth: List of datapoints from real data to compare with results from ODE-model
+        wanted_times: t_eval for solve_ivp() from scipy
+        method: str; one of the methods available for minimize() from scipy
+        boundaries: boundaries for the parameters for minimize() from scipy
 
-'''time grid
-'''
-start = 0
-end = 0
-wanted_times = list(range(start, end))  # for t_eval
-time_span = (start, end)
+    Output:
+        Returns the result from minimize() from scipy
+    '''
+    res = minimize(LMSE, [param for param in parameters], args=(time_span,
+                                                                initial_values,
+                                                                ground_truth,
+                                                                wanted_times),
+                   method=method, bounds=boundaries)
+    return res
 
-'''Reproted Values
-'''
-I_true = []
-R_true = []
-ground_truth = [I_true, R_true]
-'''Parameters to tune; random initialization
-'''
-random_pars = np.array([0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.])
-beta = random.choice(random_pars)
-sigma = random.choice(random_pars)
-gamma = random.choice(random_pars)
-mu = random.choice(random_pars)
-bounds = ((0, 1), (0, 1), (0, 1), (0, 1))  # boundaries for parameters
 
-results = minimize(LMSE, [beta, sigma, gamma, mu], args=(time_span,
-                                                         init_values,
-                                                         ground_truth,
-                                                         wanted_times),
-                   method='BFGS', bounds=bounds)

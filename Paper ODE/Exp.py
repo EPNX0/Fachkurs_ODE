@@ -9,6 +9,8 @@ import numpy as np
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 import matplotlib
+import pandas as pd
+np.random.seed(1)
 
 
 def exp(a, b, t_span):
@@ -43,9 +45,11 @@ def MSE(parameters, Fatalities, time_span, ground_truth):
 
     return mse
 
+deaths = pd.read_csv('./italy_deaths.csv')
+removed = pd.read_csv('./italy_removed.csv')
 
-Removed = np.array([])  # Ground Truth to minimize MSE
-Fatalities = np.array([])  # To get Removed from Exp; Get from Data
+Removed = np.array(removed.iloc[:, -1])  # Ground Truth to minimize MSE
+Fatalities = np.array(removed.iloc[:, -1])  # To get Removed from Exp; Get from Data
 a = 1  # Parameter for Exp
 b = 1  # Parameter for Exp
 start = 0
