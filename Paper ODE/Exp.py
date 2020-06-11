@@ -46,13 +46,13 @@ def MSE(parameters, Fatalities, time_span, ground_truth):
 
     return mse
 # data are from 1/22/20 - 6/9/20; need data from 3/22/20 - 5/10/20
-deaths = pd.read_csv('./italy_deaths.csv')
-removed = pd.read_csv('./italy_removed.csv')
+deaths = pd.read_csv('./China_deaths.csv')
+removed = pd.read_csv('./China_removed.csv')
 
 Removed = np.array(removed.iloc[:, -1])  # Ground Truth to minimize MSE
 Fatalities = np.array(deaths.iloc[:, -1])  # To get Removed from Exp; Get from Data
-a = 1.03167013  # Parameter for Exp
-b = 0.01355561  # Parameter for Exp
+a = 16  # Parameter for Exp
+b = 0.4  # Parameter for Exp
 start = 0
 end = len(Fatalities)
 time_span = (start, end)
@@ -60,15 +60,18 @@ time_span = (start, end)
 bounds = ((1e-99, 1e99), (1e-99, 1e99))
 
 '''Tuning the parameters a and b
+'''
 
 res = minimize(MSE, [a, b], args=(Fatalities, time_span, Removed), bounds=bounds,
                options={'disp': True})
 print(res)
-'''
 
+
+parameters = dict(China=[3.56064863e+03, 2.36845288e-01], France=[0.36734085, 0.00265846],
+                  Italy=[0.53838823, 0.01752495], US=[0.59783823, 0.01699403])
 '''After successful tuning; plotting the result
-'''
-ratios = exp(a, b, time_span)
+
+ratios = exp(parameters['China'][0], parameters['China'][1], time_span)
 X = list(range(start, end))
 y_pred = Fatalities * np.ones(ratios.shape)/ratios
 y_true = Removed
@@ -77,8 +80,9 @@ plt.plot(X, y_true, label='GroundTruth', color='blue')
 plt.plot(X, y_pred, label='Predicted', color='red', linestyle='--')
 plt.legend()
 plt.ylabel('# Removed Cases')
-plt.xlabel('days')
-
+plt.xlabel('Days')
+plt.savefig('./China_Exp.png', dpi=600)
+'''
 
 '''We need number of active cases (I) and removed cases (R); most data only
 include confirmed cases (I+R); We need to get I and R separately; Model can only
