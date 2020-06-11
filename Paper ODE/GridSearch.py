@@ -61,7 +61,7 @@ Data from 22.3.20 - 3.5.20 is training set; from 4.5.20 - 10.5.20 validation set
       index: 71   -  113                           114  -   120
 '''
 '''Test for the US
-'''
+
 PATH = 'C:/Users/Erich/Desktop/Theoretische Biophysik; Systembiologie/FK/Fachkurs_ODE/Paper ODE'
 Infectious = list(pd.read_csv(os.path.join(PATH, 'US_infectious.csv')).iloc[:,-1])
 Removed = list(pd.read_csv(os.path.join(PATH, 'US_removed.csv')).iloc[:, -1])
@@ -79,56 +79,115 @@ R_true = Removed[:-7]
 ground_truth = [I_true, R_true]
 
 # Initial Values
-I0 = Infectious[0]  # Infectious Individuals at t=0; who are infected and can transmit it (confirmed)
-R0 = Removed[0]  # Removed individuals at t=0; who died+recovered
-N0 = Population  # Some Population < Total population because of stay-at-home order
-E0 = int((0.5 * N0) + 0.5)  # Exposed Individuals at t=0; infected but not tested
-S0 = N0 - E0 - I0 - R0  # Susceptible Individuals at t=0; Those who can be infected
-init_values = [S0, E0, I0, R0]  # Values from Data at start-time
-
-# Parameters ti tune
-random_pars = np.array([0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.])
-beta = random.choice(random_pars)  # Contact rate between S and (E + I)
-sigma = random.choice(random_pars)  # Frac of E that either are I or R without confirmation
-gamma = random.choice(random_pars)  # Transition rate between I and R
-mu = random.choice(random_pars)  # Discovery rate of I
-bounds = ((0, 1), (0, 1), (0, 1), (0, 1))  # boundaries for parameters
-parameters = {'beta': beta, 'sigma': sigma, 'gamma': gamma, 'mu':mu}
-
-res = Argmin([param for param in parameters.values()], time_span, init_values, 
-             ground_truth, wanted_times, bounds)
-print(res)
-
-if res.success==True:
-    # Evaluation
-    # Initial Values
+for frac in [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]:
     I0 = Infectious[0]  # Infectious Individuals at t=0; who are infected and can transmit it (confirmed)
     R0 = Removed[0]  # Removed individuals at t=0; who died+recovered
-    E0 = int((0.5 * N0) + 0.5)  # Exposed Individuals at t=0; infected but not tested
     N0 = Population  # Some Population < Total population because of stay-at-home order
+    E0 = int((frac * N0) + 0.5)  # Exposed Individuals at t=0; infected but not tested
     S0 = N0 - E0 - I0 - R0  # Susceptible Individuals at t=0; Those who can be infected
     init_values = [S0, E0, I0, R0]  # Values from Data at start-time
-    # ground truth
-    I_true = Infectious[-7:]
-    R_true = Removed[-7:]
-    ground_truth = [I_true, R_true]
-    # time span
-    start = 0
-    end = len(Removed)
-    wanted_times = list(range(43, end))  # for t_eval, result for each day
-    time_span = (start, end)
-    # parameters taken from res if successful
-    L = LMSE(res.x.tolist(), time_span, init_values, ground_truth, wanted_times)
-    dic.update({'US0': [res.x[0], res.x[1], res.x[2], res.x[3], E0, L]})
-
-
-
-
-
-
-
-
+    
+    # Parameters ti tune
+    random_pars = np.array([0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.])
+    beta = random.choice(random_pars)  # Contact rate between S and (E + I)
+    sigma = random.choice(random_pars)  # Frac of E that either are I or R without confirmation
+    gamma = random.choice(random_pars)  # Transition rate between I and R
+    mu = random.choice(random_pars)  # Discovery rate of I
+    bounds = ((0, 1), (0, 1), (0, 1), (0, 1))  # boundaries for parameters
+    parameters = {'beta': beta, 'sigma': sigma, 'gamma': gamma, 'mu':mu}
+    
+    res = Argmin([param for param in parameters.values()], time_span, init_values, 
+                 ground_truth, wanted_times, bounds)
+    print(res)
+    
+    if res.success==True:
+        # Evaluation
+        # Initial Values
+        I0 = Infectious[0]  # Infectious Individuals at t=0; who are infected and can transmit it (confirmed)
+        R0 = Removed[0]  # Removed individuals at t=0; who died+recovered
+        N0 = Population  # Some Population < Total population because of stay-at-home order
+        E0 = int((frac * N0) + 0.5)  # Exposed Individuals at t=0; infected but not tested
+        S0 = N0 - E0 - I0 - R0  # Susceptible Individuals at t=0; Those who can be infected
+        init_values = [S0, E0, I0, R0]  # Values from Data at start-time
+        # ground truth
+        I_true = Infectious[-7:]
+        R_true = Removed[-7:]
+        ground_truth = [I_true, R_true]
+        # time span
+        start = 0
+        end = len(Removed)
+        wanted_times = list(range(43, end))  # for t_eval, result for each day
+        time_span = (start, end)
+        # parameters taken from res if successful
+        L = LMSE(res.x.tolist(), time_span, init_values, ground_truth, wanted_times)
+        dic.update({'US'+str(frac): [res.x[0], res.x[1], res.x[2], res.x[3], f'{frac} * {N0}', L]})
 DF = pd.DataFrame(dic)
-DF.to_csv('./ResultsGridSearchTest.csv',
-          index=False)
+DF.to_csv('./USResultsGridSearch.csv',index=False)
+'''
+
+'''Test for the Germany
+'''
+PATH = 'C:/Users/Erich/Desktop/Theoretische Biophysik; Systembiologie/FK/Fachkurs_ODE/Paper ODE'
+Infectious = list(pd.read_csv(os.path.join(PATH, 'Germany_infectious.csv')).iloc[:,-1])
+Removed = list(pd.read_csv(os.path.join(PATH, 'Germany_removed.csv')).iloc[:, -1])
+Population = pd.read_csv(os.path.join(PATH, 'Total_Populations.csv'))['Germany'][0]
+
+# time span
+start = 0
+end = len(Removed)
+wanted_times = list(range(start, end-7))  # for t_eval, result for each day
+time_span = (start, end)
+
+# Reported Values
+I_true = Infectious[:-7]
+R_true = Removed[:-7]
+ground_truth = [I_true, R_true]
+
+# Initial Values
+for frac in [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]:
+    I0 = Infectious[0]  # Infectious Individuals at t=0; who are infected and can transmit it (confirmed)
+    R0 = Removed[0]  # Removed individuals at t=0; who died+recovered
+    N0 = Population  # Some Population < Total population because of stay-at-home order
+    E0 = int((frac * N0) + 0.5)  # Exposed Individuals at t=0; infected but not tested
+    S0 = N0 - E0 - I0 - R0  # Susceptible Individuals at t=0; Those who can be infected
+    init_values = [S0, E0, I0, R0]  # Values from Data at start-time
+    
+    # Parameters ti tune
+    random_pars = np.array([0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.])
+    beta = random.choice(random_pars)  # Contact rate between S and (E + I)
+    sigma = random.choice(random_pars)  # Frac of E that either are I or R without confirmation
+    gamma = random.choice(random_pars)  # Transition rate between I and R
+    mu = random.choice(random_pars)  # Discovery rate of I
+    bounds = ((0, 1), (0, 1), (0, 1), (0, 1))  # boundaries for parameters
+    parameters = {'beta': beta, 'sigma': sigma, 'gamma': gamma, 'mu':mu}
+    
+    res = Argmin([param for param in parameters.values()], time_span, init_values, 
+                 ground_truth, wanted_times, bounds)
+    print(res)
+    
+    if res.success==True:
+        # Validation
+        # Initial Values
+        I0 = Infectious[0]  # Infectious Individuals at t=0; who are infected and can transmit it (confirmed)
+        R0 = Removed[0]  # Removed individuals at t=0; who died+recovered
+        N0 = Population  # Some Population < Total population because of stay-at-home order
+        E0 = int((frac * N0) + 0.5)  # Exposed Individuals at t=0; infected but not tested
+        S0 = N0 - E0 - I0 - R0  # Susceptible Individuals at t=0; Those who can be infected
+        init_values = [S0, E0, I0, R0]  # Values from Data at start-time
+        # ground truth
+        I_true = Infectious[-7:]
+        R_true = Removed[-7:]
+        ground_truth = [I_true, R_true]
+        # time span
+        start = 0
+        end = len(Removed)
+        wanted_times = list(range(end-7, end))  # for t_eval, result for each day
+        time_span = (start, end)
+        # parameters taken from res if successful
+        L = LMSE(res.x.tolist(), time_span, init_values, ground_truth, wanted_times)
+        dic.update({'US'+str(frac): [res.x[0], res.x[1], res.x[2], res.x[3], f'{frac} * {N0}', L]})
+DF = pd.DataFrame(dic)
+DF.to_csv('./GermanyResultsGridSearch.csv',index=False)
+
+
 

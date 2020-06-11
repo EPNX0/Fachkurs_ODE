@@ -3,6 +3,7 @@ Created on Tue Jun  9 12:57:47 2020
 
 @author: Erich
 """
+import os
 import math
 from sklearn.metrics import mean_squared_error
 import numpy as np
@@ -46,13 +47,14 @@ def MSE(parameters, Fatalities, time_span, ground_truth):
 
     return mse
 # data are from 1/22/20 - 6/9/20; need data from 3/22/20 - 5/10/20
-deaths = pd.read_csv('./China_deaths.csv')
-removed = pd.read_csv('./China_removed.csv')
+PATH = 'C:/Users/Erich/Desktop/Theoretische Biophysik; Systembiologie/FK/Fachkurs_ODE/Paper ODE'
+deaths = pd.read_csv(os.path.join(PATH, 'Germany_deaths.csv'))
+removed = pd.read_csv(os.path.join(PATH,'Germany_removed.csv'))
 
 Removed = np.array(removed.iloc[:, -1])  # Ground Truth to minimize MSE
 Fatalities = np.array(deaths.iloc[:, -1])  # To get Removed from Exp; Get from Data
-a = 16  # Parameter for Exp
-b = 0.4  # Parameter for Exp
+a = 10  # Parameter for Exp
+b = 0.09  # Parameter for Exp
 start = 0
 end = len(Fatalities)
 time_span = (start, end)
@@ -67,11 +69,11 @@ res = minimize(MSE, [a, b], args=(Fatalities, time_span, Removed), bounds=bounds
 print(res)
 
 
-parameters = dict(China=[3.56064863e+03, 2.36845288e-01], France=[0.36734085, 0.00265846],
-                  Italy=[0.53838823, 0.01752495], US=[0.59783823, 0.01699403])
+parameters = dict(_=['a', 'b'], China=[3.56064863e+03, 2.36845288e-01], France=[0.36734085, 0.00265846],
+                  Italy=[0.53838823, 0.01752495], US=[0.59783823, 0.01699403], Germany=[0.05099213, 0.00053813])
 '''After successful tuning; plotting the result
 
-ratios = exp(parameters['China'][0], parameters['China'][1], time_span)
+ratios = exp(parameters['Germany'][0], parameters['Germany'][1], time_span)
 X = list(range(start, end))
 y_pred = Fatalities * np.ones(ratios.shape)/ratios
 y_true = Removed
@@ -81,7 +83,7 @@ plt.plot(X, y_pred, label='Predicted', color='red', linestyle='--')
 plt.legend()
 plt.ylabel('# Removed Cases')
 plt.xlabel('Days')
-plt.savefig('./China_Exp.png', dpi=600)
+plt.savefig('./Germany_Exp.png', dpi=600)
 '''
 
 '''We need number of active cases (I) and removed cases (R); most data only
@@ -90,4 +92,4 @@ predict number of removed cases but more interested in fatality cases (deaths);
 --> estimate number of removed cases (R) and subtract R from confirmed cases
 to get active cases (I);
 exp-fct is ratio between daily increased fatalities & removed cases (#Deaths/R)
-'''
+'''                                                                   

@@ -58,7 +58,7 @@ def LMSE(parameters, time_span, init_values, ground_truth, wanted_times):
     R_pred = Predicitons.y[3]
     I_true = ground_truth[0]
     R_true = ground_truth[1]
-    #print(f'I_Pred: {I_pred}\nR_Pred:{R_pred}')
+    print(f'I_Pred: {I_pred}\nR_Pred:{R_pred}')
 
     try:
         assert len(I_pred) == len(I_true) == len(R_pred) == len(R_true)
