@@ -13,16 +13,16 @@ import matplotlib.pyplot as plt
 from LearningTheta import SuEIR
 from scipy.integrate import solve_ivp
 
-Infectious = list(pd.read_csv('./Germany/Germany_infectious.csv').iloc[:, -1])[:]
-Removed = list(pd.read_csv('./Germany/Germany_removed.csv').iloc[:, -1])[:]
+Infectious = list(pd.read_csv('./TBPH/Infectious_TBPH.csv').iloc[:, -1])[72:401]
+Removed = list(pd.read_csv('./TBPH/Removed_TBPH.csv').iloc[:, -1])[72:401]
 Population = pd.read_csv('./Total_Populations.csv')['Germany']
-Parameters = pd.read_csv('./Germany/GermanyGridSearch6.csv')
+Parameters = pd.read_csv('./TBPH/TBPHGridSearchOliver2.csv')
 Keys = Parameters.keys()
 
 '''Time span
 '''
 start = 0
-end = len(Removed)+50
+end = len(Removed)+100
 t_span = (start, end)
 t_eval = list(range(start, end))
 
@@ -31,8 +31,8 @@ for i in range(1, len(Keys)):
     '''
     I0 = Infectious[0]
     R0 = Removed[0]
-    N0 = Population
-    E0 = int((int(Parameters[Keys[i]][4][0]) * I0) + 0.5)
+    N0 = 10290
+    E0 = 1004  # int((int(Parameters[Keys[i]][4][0]) * I0) + 0.5)
     S0 = N0 - I0 - R0 - E0
     Init_values = [S0, E0, I0, R0]
     '''Parameters
@@ -59,6 +59,6 @@ for i in range(1, len(Keys)):
     plt.legend()
     plt.xlabel('Days')
     plt.ylabel('# Of Individuals')
-    plt.savefig(f'./Germany/Grid6/Grid{Keys[i]}.png', dpi=600, bbox_inches='tight')
+    plt.savefig(f'./TBPH/GridOliver2/Grid{Keys[i]}.png', dpi=600, bbox_inches='tight')
     plt.close()
 
