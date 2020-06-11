@@ -41,12 +41,24 @@ def SuEIR(t, x, beta, sigma, gamma, mu):
 
 
 def LMSE(parameters, time_span, init_values, ground_truth, wanted_times):
+    '''
+    Input:
+        parameters = List of parameters
+        time_span = time_span for solve_ivp
+        init_values = y0 for solve_ivp
+        ground_truth = True values to compare against
+        wanted_times = t_eval for solve_ivp
+        
+    Return:
+        Logarithmic-type mean square error between predicted and true values
+    '''
     #print(f'Parms:{parameters}; t_span:{time_span}; init_vals:{init_values}; GT:{ground_truth}, t_eval:{wanted_times}')
-    Predicitons = solve_ivp(SuEIR, time_span, init_values, args=(beta, sigma, gamma, mu), t_eval=wanted_times)
+    Predicitons = solve_ivp(SuEIR, time_span, init_values, args=(parameters), t_eval=wanted_times)
     I_pred = Predicitons.y[2]
     R_pred = Predicitons.y[3]
     I_true = ground_truth[0]
     R_true = ground_truth[1]
+    #print(f'I_Pred: {I_pred}\nR_Pred:{R_pred}')
 
     try:
         assert len(I_pred) == len(I_true) == len(R_pred) == len(R_true)
@@ -59,8 +71,8 @@ def LMSE(parameters, time_span, init_values, ground_truth, wanted_times):
 
     results = []
     for t in range(len(I_pred)):
-        result = math.sqrt(math.log10(I_pred[t] + p) - math.log10(I_true[t] + p)) + \
-                 math.sqrt(math.log10(R_pred[t] + p) - math.log10(R_true[t] + p))
+        result = (math.log10(I_pred[t] + p) - math.log10(I_true[t] + p))**2 + \
+                 (math.log10(R_pred[t] + p) - math.log10(R_true[t] + p))**2
     #    print(f'result:{result}')
         results.append(result)
     #print(f'results:{results}')
@@ -70,7 +82,7 @@ def LMSE(parameters, time_span, init_values, ground_truth, wanted_times):
     return L
 
 
-def Argmin(parameters, time_span, initial_values, ground_truth, wanted_times, method, boundaries):
+def Argmin(parameters, time_span, initial_values, ground_truth, wanted_times, boundaries):
     '''
     Input:
         parameters: List of parameters for ODE-model
@@ -88,7 +100,7 @@ def Argmin(parameters, time_span, initial_values, ground_truth, wanted_times, me
                                                                 initial_values,
                                                                 ground_truth,
                                                                 wanted_times),
-                   method=method, bounds=boundaries)
+                   bounds=boundaries, options={'disp': True})
     return res
 
 
